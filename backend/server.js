@@ -1,6 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+
 const User = require("./models/user");
+const authenticate = require("./middleware/authenticate");
 
 const app = express();
 
@@ -47,6 +50,59 @@ app.post("/register", async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
+app.post("/signin", async (req, res) => {
+  try {
+    const email = req.body.email;
+    const password = req.body.password;
+    const existingUser = await User.findOne({ email: email });
+
+    if (!existingUser) {
+      return res.status(400).json({ message: "Email does not exist" });
+    }
+
+    if (existingUser.password !== password) {
+      return res.status(400).json({ message: "Invalid Credentials" });
+    }
+
+    const payload = {
+      user: {
+        id: existingUser.id,
+      },
+    };
+
+    const key = "JWTSecretKey";
+
+    jwt.sign(payload, key, { expiresIn: 36000 }, (err, token) => {
+      if (err) {
+        throw err;
+      }
+
+      return res.json({ token: token });
+    });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+app.get("/myprofile", authenticate, async (req, res) => {
+  try {
+    const user = req.user;
+    const userData = await User.findById(user.id).select("-password");
+
+    if (!userData) {
+      res.status(400).send("User does not exist");
+    }
+
+    res.json({ user: userData });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+app.get("/mysettings", authenticate, (req, res) => {});
 
 const PORT = process.env.PORT || 5050;
 
