@@ -4,7 +4,10 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "dev": "node --watch server",
+    "start": "node server",
+    "backend": "node --watch server",
+    "frontend": "npm run start --prefix ../frontend",
+    "dev": "concurrently \" npm run backend \" \" npm run frontend \" ",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
