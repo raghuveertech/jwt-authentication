@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { TokenContext } from "../App";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +11,15 @@ const Register = () => {
     confirmPassword: "",
   });
 
+  const { token, setToken } = useContext(TokenContext);
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token) {
+      navigate("/myprofile");
+    }
+  }, [token, navigate]);
 
   const onChangeHandler = (e) => {
     setFormData((prevValues) => {
@@ -32,9 +41,9 @@ const Register = () => {
       })
       .then((response) => {
         console.log("response", response);
-        if (response.data === "User Registered Successfully") {
+        if (response.data.token) {
           alert("Success");
-          navigate("/login");
+          setToken(response.data.token);
         }
       })
       .catch((err) => {

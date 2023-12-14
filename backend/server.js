@@ -47,7 +47,20 @@ app.post("/register", async (req, res) => {
 
     await user.save();
 
-    res.send("User Registered Successfully");
+    const payload = {
+      user: {
+        id: user.id,
+      },
+    };
+    const key = "JWTSecretKey";
+
+    jwt.sign(payload, key, { expiresIn: 36000 }, (err, token) => {
+      if (err) {
+        throw err;
+      }
+
+      return res.json({ token: token });
+    });
   } catch (err) {
     console.log(err.message);
     res.status(500).send("Server Error");
